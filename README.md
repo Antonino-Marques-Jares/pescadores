@@ -5,7 +5,7 @@ O mapa visa mapear e analisar a distribuição geográfica dos pescadores profis
 
 # Visualize o mapa em:
 [Visualize o Mapa aqui](https://www.areadetrampo.com.br/mapa-de-pescadores-no-brasil/)
-ou baixe o arquivo pscadores.html que é o resultado final deste trabalho.
+ou baixe o arquivo pescadores.html que é o resultado final deste trabalho.
 
 # Motivação
 1º Concurso de Reúso de Dados Abertos da CGU
