@@ -24,16 +24,21 @@ TIPO,  UF, MUNICIPIO,  LATITUDE,  LONGITUDE,  DESEMBARCADO (QTD DESEMBARCADO) e 
 Criamos u arquivo JSON que será lido pelo html mapa_pescadores.html
 
 # Visualize o MAPA em:
+
 [Visualize o Mapa aqui](https://www.areadetrampo.com.br/mapa-de-pescadores-no-brasil/)
 
 # Visualize o JSON em:
+
 Apresenta o resumo das informações constantes em **Dados Abertos - GOV.BR**, somado a isso, posições geográficas dos Municípios.
+
 [JSON pescadores](https://www.areadetrampo.com.br/wp-content/uploads/2025/07/dados_pescadores_no_brasil_08_07_2025.json)
 
 # Motivação
+
 1º Concurso de Reúso de Dados Abertos da CGU
 
 ### Informações de latitude e longitude dos Municípios Brasileiros
+
 * https://github.com/kelvins/municipios-brasileiros/blob/main/csv/estados.csv
 * https://github.com/kelvins/municipios-brasileiros/blob/main/csv/municipios.csv
   
@@ -41,7 +46,9 @@ Apresenta o resumo das informações constantes em **Dados Abertos - GOV.BR**, s
 [![Gov Br](govbr.webp)](https://dados.gov.br/dados/conjuntos-dados/base-de-dados-dos-registros-de-pescadores-e-pescadoras-profissionais)
   
 # Autor:
+
 **Antonino Marques Jares**
 
 # Atualizado em:
+
 **03/06/2025**
