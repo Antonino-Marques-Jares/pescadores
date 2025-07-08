@@ -26,7 +26,8 @@ Criamos u arquivo JSON que será lido pelo html mapa_pescadores.html
 # Visualize o MAPA em:
 [Visualize o Mapa aqui](https://www.areadetrampo.com.br/mapa-de-pescadores-no-brasil/)
 
-# Visualize o JSON que é um resumo das informações constantes em DADOS abertos e somado a isso foi adicionado a posição geográfica dos Municípios :
+# Visualize o JSON em:
+Apresenta o resumo das informações constantes em **Dados Abertos - GOV.BR**, somado a isso, posições geográficas dos Municípios.
 [JSON pescadores](https://www.areadetrampo.com.br/wp-content/uploads/2025/07/dados_pescadores_no_brasil_08_07_2025.json)
 
 # Motivação
