@@ -51,4 +51,4 @@ Apresenta o resumo das informações constantes em **Dados Abertos - GOV.BR**, s
 
 # Atualizado em:
 
-**03/06/2025**
+**08/07/2025**
