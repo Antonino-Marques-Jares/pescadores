@@ -33,7 +33,7 @@ Apresenta o resumo das informações constantes em **Dados Abertos - GOV.BR**, s
 
 [JSON pescadores](https://www.areadetrampo.com.br/wp-content/uploads/2025/07/dados_pescadores_no_brasil_08_07_2025.json)
 
-Obs.: A idéia de compartilhar o JSON é servir de base para outras Plataformas e alimentar outros HTML's que queiram integrar estes dados.
+Obs.: A idéia é podermos correlacionar as informações deste mapa com outras informações de outro JSON em um HTML.
 
 # Motivação
 
