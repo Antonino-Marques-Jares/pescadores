@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pescadores no Brasil</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        #map { 
+            height: 600px; 
+            width: 100%;
+            margin-top: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .map-container {
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .controls {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        input, select, button {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .info {
+            padding: 6px 8px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            background: white;
+            background: rgba(255,255,255,0.8);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            border-radius: 5px;
+        }
+        .info h4 {
+            margin: 0 0 5px;
+            color: #777;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            padding: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="map-container">
+        <h1>Mapa de Pescadores no Brasil (2025)</h1>
+        
+        <div class="controls">
+            <select id="ufFilter">
+                <option value="">Todos os Estados</option>
+            </select>
+            <select id="tipoPescaFilter">
+                <option value="TOTAL">Total (Desembarcado + Embarcado)</option>
+                <option value="DESEMBARCADO">Apenas Desembarcado</option>
+                <option value="EMBARCADO">Apenas Embarcado</option>
+            </select>
+            <button onclick="filterData()">Filtrar</button>
+            <button onclick="resetView()">Resetar Visualização</button>
+        </div>
+        
+        <div id="loading" class="loading">Carregando dados dos pescadores...</div>
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="map"></div>
+        
+        <div>
+            <h3>Fonte:</h3>
+            <p>Informações de latitude e longitude dos Municípios Brasileiros</p>
+            <ul>
+                <li>https://github.com/kelvins/municipios-brasileiros/blob/main/csv/estados.csv</li>
+                <li>https://github.com/kelvins/municipios-brasileiros/blob/main/csv/municipios.csv</li>
+            </ul>
+            <p>Informações de quantidade de pescadores nos Municípios</p>
+            <p><a href="https://dados.gov.br/dados/conjuntos-dados/base-de-dados-dos-registros-de-pescadores-e-pescadoras-profissionais" target="_blank">
+                <img src="https://www.areadetrampo.com.br/wp-content/uploads/2025/07/govbr.webp" alt="GovBr" width="300">
+            </a></p>
+            <p><b>Autor:</b> Antonino Marques Jares</p>
+            <p><b>Atualizado em:</b> 08/07/2025</p>
+            <p><b>Concurso:</b> 1º Concurso de Reúso de Dados Abertos da CGU</p>
+            <p><b>Projeto no GitHub:</b> <a href="https://github.com/Antonino-Marques-Jares/pescadores">pescadores</a></p>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+     <script>
+        // Variáveis globais
+        let map;
+        let markers = [];
+        let allFishermenData = [];
+        
+        // Cores para diferentes tipos de visualização
+        const colorSchemes = {
+            'TOTAL': '#3388ff',
+            'DESEMBARCADO': '#33cc33',
+            'EMBARCADO': '#ff7800'
+        };
+
+        // Inicialização do mapa
+        document.addEventListener('DOMContentLoaded', function() {
+            map = L.map('map').setView([-15.7801, -47.9292], 4);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+            
+            addInfoControl();
+            loadFishermenData();
+        });
+        
+        // Função para adicionar controle de informação (ajustada para a estrutura do seu JSON)
+        function addInfoControl() {
+            const info = L.control({position: 'topright'});
+            
+            info.onAdd = function(map) {
+                this._div = L.DomUtil.create('div', 'info');
+                this.update();
+                return this._div;
+            };
+            
+            info.update = function(props) {
+                this._div.innerHTML = '<h4>Informações da Pesca</h4>' + 
+                    (props ? 
+                        `<b>${props.MUNICIPIO} - ${props.UF}</b><br>
+                        Desembarcado: ${props.DESEMBARCADO.toLocaleString()} pescadores<br>
+                        Embarcado: ${props.EMBARCADO.toLocaleString()} pescadores<br>
+                        Total: ${(props.DESEMBARCADO + props.EMBARCADO).toLocaleString()} pescadores` :
+                        'Passe o mouse sobre um município');
+            };
+            
+            info.addTo(map);
+        }
+        
+        // Função para carregar dados com tratamento CORS
+        function loadFishermenData() {
+            const jsonUrl = 'https://www.areadetrampo.com.br/wp-content/uploads/2025/07/dados_pescadores_no_brasil_08_07_2025.json';
+            
+            // Usando proxy CORS como fallback
+            const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(jsonUrl);
+            
+            // Tentativa direta primeiro
+            fetch(jsonUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    processData(data);
+                })
+                .catch(error => {
+                    console.log('Tentando via proxy CORS devido ao erro:', error);
+                    // Se falhar, tenta com proxy CORS
+                    fetch(proxyUrl)
+                        .then(response => {
+                            if (!response.ok) throw new Error(`Erro no proxy: ${response.status}`);
+                            return response.json();
+                        })
+                        .then(proxyData => {
+                            // O proxy retorna o conteúdo em .contents
+                            const data = JSON.parse(proxyData.contents);
+                            processData(data);
+                        })
+                        .catch(proxyError => {
+                            console.error('Erro no proxy:', proxyError);
+                            showError(proxyError);
+                        });
+                });
+        }
+        
+        // Processa os dados recebidos
+        function processData(data) {
+            try {
+                if (!Array.isArray(data)) {
+                    throw new Error('Os dados devem ser um array');
+                }
+                
+                allFishermenData = data.map(item => {
+                    // Verifica campos obrigatórios
+                    if (item.UF === undefined || item.MUNICIPIO === undefined || 
+                        item.LATITUDE === undefined || item.LONGITUDE === undefined) {
+                        console.warn('Item incompleto:', item);
+                        return null;
+                    }
+                    
+                    return {
+                        UF: item.UF,
+                        MUNICIPIO: item.MUNICIPIO,
+                        DESEMBARCADO: parseInt(item.DESEMBARCADO) || 0,
+                        EMBARCADO: parseInt(item.EMBARCADO) || 0,
+                        LATITUDE: parseFloat(item.LATITUDE),
+                        LONGITUDE: parseFloat(item.LONGITUDE)
+                    };
+                }).filter(item => item !== null);
+                
+                if (allFishermenData.length === 0) {
+                    throw new Error('Nenhum dado válido encontrado');
+                }
+                
+                document.getElementById('loading').style.display = 'none';
+                updateFilterOptions();
+                plotFishermen(allFishermenData);
+            } catch (e) {
+                showError(e);
+            }
+        }
+        
+        // Mostra mensagem de erro
+        function showError(error) {
+            console.error('Erro:', error);
+            document.getElementById('loading').style.display = 'none';
+            const errorElement = document.getElementById('error');
+            errorElement.style.display = 'block';
+            errorElement.innerHTML = `
+                <p>Erro ao carregar os dados</p>
+                <p><strong>${error.message}</strong></p>
+                <p>Verifique o console para detalhes</p>
+            `;
+        }
+        
+        // [Restante das funções permanece similar, mas ajustado para a estrutura do seu JSON]
+        function updateFilterOptions() {
+            const ufSelect = document.getElementById('ufFilter');
+            while (ufSelect.options.length > 1) ufSelect.remove(1);
+            
+            const ufs = [...new Set(allFishermenData.map(item => item.UF))].sort();
+            ufs.forEach(uf => {
+                const option = document.createElement('option');
+                option.value = uf;
+                option.textContent = uf;
+                ufSelect.appendChild(option);
+            });
+        }
+        
+        function plotFishermen(data) {
+            clearMarkers();
+            const tipoPesca = document.getElementById('tipoPescaFilter').value;
+            
+            data.forEach(fisherman => {
+                const total = fisherman.DESEMBARCADO + fisherman.EMBARCADO;
+                const value = tipoPesca === 'TOTAL' ? total : 
+                             tipoPesca === 'DESEMBARCADO' ? fisherman.DESEMBARCADO : 
+                             fisherman.EMBARCADO;
+                
+                if (value <= 0) return;
+                
+                const marker = L.circleMarker(
+                    [fisherman.LATITUDE, fisherman.LONGITUDE],
+                    {
+                        radius: Math.min(5 + Math.sqrt(value)/2, 20),
+                        fillColor: colorSchemes[tipoPesca],
+                        color: '#000',
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.8
+                    }
+                ).addTo(map);
+                
+                marker.bindPopup(`
+                    <b>${fisherman.MUNICIPIO} - ${fisherman.UF}</b><br>
+                    Desembarcado: ${fisherman.DESEMBARCADO.toLocaleString()} pescadores<br>
+                    Embarcado: ${fisherman.EMBARCADO.toLocaleString()} pescadores<br>
+                    Total: ${total.toLocaleString()} pescadores<br>
+                    Coordenadas: ${fisherman.LATITUDE.toFixed(4)}, ${fisherman.LONGITUDE.toFixed(4)}
+                `);
+                
+                marker.on('mouseover', function() {
+                    this.setStyle({fillOpacity: 1});
+                    info.update(fisherman);
+                });
+                
+                marker.on('mouseout', function() {
+                    this.setStyle({fillOpacity: 0.8});
+                    info.update();
+                });
+                
+                markers.push(marker);
+            });
+            
+            if (markers.length > 0) {
+                const group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.5));
+            }
+        }
+        
+        function filterData() {
+            const selectedUF = document.getElementById('ufFilter').value;
+            const filteredData = allFishermenData.filter(fisherman => {
+                return !selectedUF || fisherman.UF === selectedUF;
+            });
+            plotFishermen(filteredData);
+        }
+        
+        function resetView() {
+            document.getElementById('ufFilter').value = '';
+            plotFishermen(allFishermenData);
+        }
+        
+        function clearMarkers() {
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+        }
+        
+        const info = L.control();
+    </script>
+</body>
+</html>
