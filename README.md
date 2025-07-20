@@ -21,19 +21,12 @@ Ficamos com o df_pivot com as colunas
 TIPO,  UF, MUNICIPIO,  LATITUDE,  LONGITUDE,  DESEMBARCADO (QTD DESEMBARCADO) e  EMBARCADO (QTD EMBARCADO)
 
 # Passo 5
-Criamos u arquivo JSON que será lido pelo html mapa_pescadores.html
+Criamos um arquivo JSON que será incorporado em pescadores_brasil.html
 
 # Visualize o MAPA em:
 
 [Visualize o Mapa aqui](https://www.areadetrampo.com.br/mapa-de-pescadores-no-brasil/)
 
-# Visualize o JSON em:
-
-Apresenta o resumo das informações constantes em **Dados Abertos - GOV.BR**, somado a isso, **posições geográficas dos Municípios**.
-
-[JSON pescadores](https://www.areadetrampo.com.br/wp-content/uploads/2025/07/dados_pescadores_no_brasil_08_07_2025.json)
-
-Obs.: A idéia é podermos incorporar em outros mapas estas informações, mas sempre fazendo a referência para a origem dos dados.
 
 # Motivação
 
